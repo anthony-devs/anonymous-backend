@@ -1,0 +1,7 @@
+POST /auth/login
+Content-Type: application/json
+
+{
+  "username": "ghost_912",
+  "device_id": "B8E2E7A1-2F7C-4A6E-9C33-XXX"
+}

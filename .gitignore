@@ -1,0 +1,117 @@
+############################
+# OS / Editor junk
+############################
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.log
+
+############################
+# Environment files
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# Python / Flask
+############################
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Mypy / type checking
+.mypy_cache/
+.dmypy.json
+
+############################
+# Node / Next.js
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js build output
+.next/
+out/
+dist/
+
+# Vercel
+.vercel
+
+############################
+# Package managers
+############################
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+############################
+# Build artifacts
+############################
+build/
+.cache/
+
+############################
+# IDEs
+############################
+.vscode/
+.idea/
+*.iml
+
+############################
+# Database / local data
+############################
+*.sqlite
+*.db
+*.db-journal
+
+############################
+# Secrets / Keys
+############################
+*.pem
+*.key
+*.crt
+
+############################
+# Logs
+############################
+logs/
+*.log
+
+############################
+# Misc
+############################
+tmp/
+temp/
+
+# Client (Next.js)
+client/node_modules/
+client/.next/
+client/out/
+
+# Server (Flask)
+server/venv/
+server/.venv/
+server/__pycache__/
+server/instance/
