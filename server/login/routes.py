@@ -40,10 +40,13 @@ def login():
     # Check if user exists
     user = users.find_one({"username": username})
 
-     # Generate JWT token
+    # -------------------------------
+    # Generate non-expiring JWT token
+    # -------------------------------
     token = create_access_token(
         identity=username,
-        additional_claims={"device_id": device_id}
+        additional_claims={"device_id": device_id},
+        expires_delta=False  # <--- NEVER EXPIRES
     )
 
     if not user:
@@ -65,7 +68,5 @@ def login():
             {"username": username},
             {"$set": {"last_active_at": now()}}
         )
-
-   
 
     return jsonify({"access_token": token})

@@ -3,7 +3,7 @@ from config import Config
 from extensions import jwt
 from login.routes import login_bp
 from messages.routes import messages_bp
-
+from flask_cors import CORS
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -13,6 +13,9 @@ def create_app():
 
     # Register blueprints
     app.register_blueprint(login_bp, url_prefix="/auth")
+
+    CORS(app)
+
     app.register_blueprint(messages_bp, url_prefix="/messages")
 
     return app

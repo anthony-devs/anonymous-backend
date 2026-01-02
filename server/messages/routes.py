@@ -36,27 +36,20 @@ def get_messages():
 # -------------------------------
 @messages_bp.route("/add", methods=["POST"])
 def add_message():
-    """
-    Anyone can send a message to a username.
-    No JWT required. Completely anonymous.
-    """
+    to_username = request.args.get("to_username")
+    content = request.args.get("content")
+
+    if not to_username or not content:
+        return jsonify({"error": "to_username and content required"}), 400
+
     db = get_mongo(current_app)
     users = db.users
     messages = db.messages
 
-    data = request.get_json()
-    to_username = data.get("to_username")
-    content = data.get("content")
-
-    if not to_username or not content:
-        return jsonify({"error": "to_username and content are required"}), 400
-
-    # Ensure recipient exists
     recipient = users.find_one({"username": to_username})
     if not recipient:
         return jsonify({"error": "Recipient not found"}), 404
 
-    # Insert anonymous message
     messages.insert_one({
         "to_username": to_username,
         "content": content,
