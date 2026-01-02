@@ -1,77 +1,71 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token
-from bson.objectid import ObjectId
 from datetime import datetime
-from pymongo import ASCENDING
+from extensions import get_mongo
 
-from . import login_bp
-from extensions import mongo_client
-from flask import current_app
+login_bp = Blueprint("login", __name__)
 
-
+# -------------------------------
+# Helper function for timestamps
+# -------------------------------
 def now():
     return datetime.utcnow()
 
-
-@login_bp.record_once
-def setup_indexes(state):
-    app = state.app
-    db = mongo_client[app.config["DB_NAME"]]
-
-    users = db.users
-    messages = db.messages
-
-    # Auto delete after 28 days
-    users.create_index(
-        [("last_active_at", ASCENDING)],
-        expireAfterSeconds=28 * 24 * 60 * 60
-    )
-
-    messages.create_index(
-        [("created_at", ASCENDING)],
-        expireAfterSeconds=28 * 24 * 60 * 60
-    )
-
-
+# -------------------------------
+# LOGIN / CREATE USER
+# -------------------------------
 @login_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
+    """
+    Login or create a user.
+    Expects JSON:
+    {
+        "username": "<username>",
+        "device_id": "<device_id>"
+    }
 
+    Returns:
+        JWT token with identity=username and device_id claim
+    """
+    data = request.get_json()
     username = data.get("username")
     device_id = data.get("device_id")
 
     if not username or not device_id:
         return jsonify({"error": "username and device_id required"}), 400
 
-    db = mongo_client[current_app.config["DB_NAME"]]
+    db = get_mongo(current_app)
     users = db.users
 
+    # Check if user exists
     user = users.find_one({"username": username})
 
-    # Create account if new
-    if not user:
-        user_id = users.insert_one({
-            "username": username,
-            "device_id": device_id,
-            "created_at": now(),
-            "last_active_at": now()
-        }).inserted_id
-    else:
-        # Enforce one-device rule
-        if user["device_id"] != device_id:
-            return jsonify({
-                "error": "Account locked to another device"
-            }), 403
-
-        users.update_one(
-            {"_id": user["_id"]},
-            {"$set": {"last_active_at": now()}}
-        )
-        user_id = user["_id"]
-
+     # Generate JWT token
     token = create_access_token(
-        identity=str(user_id),
+        identity=username,
         additional_claims={"device_id": device_id}
     )
+
+    if not user:
+        # Create new user
+        users.insert_one({
+            "username": username,
+            "device_id": device_id,
+            "jwt": token,
+            "created_at": now(),
+            "last_active_at": now()
+        })
+    else:
+        # Enforce one device only
+        if user["device_id"] != device_id:
+            return jsonify({"error": "Account locked to another device"}), 403
+
+        # Update last_active timestamp
+        users.update_one(
+            {"username": username},
+            {"$set": {"last_active_at": now()}}
+        )
+
+   
 
     return jsonify({"access_token": token})
